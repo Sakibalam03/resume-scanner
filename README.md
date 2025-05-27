@@ -34,7 +34,7 @@ pip install python-docx pytesseract pillow numpy scikit-learn sentence-transform
    ```
 4. **Add your files**:
    - Place job description in the root directory
-   - Add resumes to the configured directory
+   - Create a folder named "Sample Resumes" and add all resumes in it
 
 ## 📁 Supported File Types
 
@@ -73,7 +73,6 @@ RESUME_EXTENSIONS = ['.pdf', '.docx', '.txt', '.png', '.jpg', '.jpeg']
 ### Model Selection
 Default: `all-MiniLM-L6-v2` (fast, accurate)
 - Change in `load_sentence_transformer_model()` function
-- First run downloads model automatically
 
 ## 🔧 How It Works
 
@@ -125,7 +124,3 @@ Found a bug or want to add features? Contributions welcome!
 ## 📄 License
 
 Open source - feel free to modify and distribute.
-
----
-
-**💡 Pro Tip**: Use detailed job descriptions for better matching accuracy. The AI understands context, skills, and requirements beyond simple keyword matching!
