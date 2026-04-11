@@ -1,4 +1,4 @@
-﻿import os
+import os
 import io
 import docx
 import pytesseract
@@ -6,12 +6,13 @@ from PIL import Image
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
-import fitz 
+import fitz
+from dotenv import load_dotenv
 
-TEXT_LENGTH_THRESHOLD = 100
+load_dotenv()
 
-RESUMES_DIRECTORY = r"C:\Users\sensh\OneDrive\Desktop\Projects\Resume Scanner\Sample Resumes"
-
+TEXT_LENGTH_THRESHOLD = int(os.getenv("TEXT_LENGTH_THRESHOLD", 100))
+RESUMES_DIRECTORY = os.getenv("RESUMES_DIRECTORY", "Sample Resumes")
 RESUME_EXTENSIONS = ['.pdf', '.docx', '.txt', '.png', '.jpg', '.jpeg']
 
 def extract_text_from_pdf_direct(pdf_path):
@@ -153,7 +154,7 @@ def calculate_similarity(embedding1, embedding2):
 
 
 if __name__ == "__main__":
-    job_description_path = "Sample Job Description.pdf"
+    job_description_path = os.getenv("JOB_DESCRIPTION_PATH", "Sample Job Description.pdf")
 
     resume_paths = []
     if not os.path.isdir(RESUMES_DIRECTORY):
