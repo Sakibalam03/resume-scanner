@@ -1,126 +1,131 @@
-﻿# 📄 Resume Scanner
+# Resume Scanner
 
-**AI-powered resume matching tool that ranks candidates by similarity to job descriptions using semantic analysis.**
+A CLI tool that ranks resumes against a job description using semantic similarity. Text is extracted from uploaded documents, converted to sentence embeddings, and scored via cosine similarity.
 
-## 🚀 Features
+---
 
-- **📊 Smart Text Extraction**: Supports PDF, DOCX, TXT, and image formats
-- **🔍 OCR Fallback**: Automatic OCR when direct extraction fails
-- **🧠 Semantic Matching**: Uses sentence transformers for intelligent similarity scoring
-- **📈 Ranked Results**: Automatically sorts candidates by match score
-- **🔄 Batch Processing**: Scans entire directories of resumes
+## What It Does
 
-## 📋 Requirements
+1. Reads a job description file (PDF, DOCX, or TXT)
+2. Reads all resume files in a configured directory
+3. Extracts text from each file — direct parsing for PDF/DOCX/TXT, OCR fallback for images or scanned documents
+4. Generates embeddings using a local sentence transformer model (`all-MiniLM-L6-v2`)
+5. Scores each resume by cosine similarity to the job description
+6. Prints ranked results to the console
 
-### Dependencies
-```bash
-pip install python-docx pytesseract pillow numpy scikit-learn sentence-transformers PyMuPDF
-```
+There is no AI reasoning, keyword weighting, or section-aware analysis — scoring is purely semantic similarity between full documents.
 
-### System Requirements
-- **Tesseract OCR**: Required for image and scanned document processing
-  - Windows: Download from [GitHub](https://github.com/UB-Mannheim/tesseract/wiki)
+---
+
+## Supported File Types
+
+| Format | Extraction Method |
+|--------|-------------------|
+| PDF | Direct text extraction via PyMuPDF; falls back to OCR if text is sparse |
+| DOCX | Direct via python-docx |
+| TXT | Plain file read |
+| PNG, JPG, JPEG | OCR via pytesseract |
+
+---
+
+## Requirements
+
+**System dependency — install separately before running:**
+
+- [Tesseract OCR](https://github.com/UB-Mannheim/tesseract/wiki) (required for image and scanned PDF support)
+  - Windows: download installer from link above
   - macOS: `brew install tesseract`
   - Linux: `sudo apt-get install tesseract-ocr`
 
-## 🛠️ Setup
+**Python dependencies:**
 
-1. **Clone/Download** the script
-2. **Install dependencies** (see above)
-3. **Configure paths** in the script:
-   ```python
-   RESUMES_DIRECTORY = r"path/to/your/resumes"
-   job_description_path = "your_job_description.pdf"
-   ```
-4. **Add your files**:
-   - Place job description in the root directory
-   - Create a folder named "Sample Resumes" and add all resumes in it
+```bash
+pip install -r requirements.txt
+```
 
-## 📁 Supported File Types
+---
 
-| Format | Method | Symbol |
-|--------|--------|--------|
-| PDF | Direct + OCR | 📄 |
-| DOCX | Direct | 📝 |
-| TXT | Direct | 📃 |
-| Images | OCR Only | 🖼️ |
+## Setup
 
-*Supported image formats: PNG, JPG, JPEG, TIFF, BMP, GIF*
+1. Clone the repo
+2. Install Tesseract OCR (see above)
+3. Install Python dependencies: `pip install -r requirements.txt`
+4. Copy `.env` and edit paths if needed:
 
-## ⚡ Usage
+```env
+RESUMES_DIRECTORY=Sample Resumes
+JOB_DESCRIPTION_PATH=Sample Job Description.pdf
+EMBEDDING_MODEL=all-MiniLM-L6-v2
+TEXT_LENGTH_THRESHOLD=100
+```
+
+5. Place your job description file and resumes folder in the project root (or set custom paths in `.env`)
+
+---
+
+## Usage
 
 ```bash
 python resume_scanner.py
 ```
 
-### Output Example
+Example output:
+
 ```
+Scanning directory: Sample Resumes for resume files...
+Found 3 resume files to process.
+
+--- Processing Job Description ---
+Direct extraction successful for Sample Job Description.pdf using direct_pdf.
+
+--- Processing Resumes and Calculating Scores ---
+Processing Sakib ML Resume.pdf...
+Similarity Score: 0.7812
+
+Processing Sakib Alam Resume.docx...
+Similarity Score: 0.7341
+
+Processing Sakib Resume.png...
+OCR extraction successful for Sakib Resume.png.
+Similarity Score: 0.6918
+
 --- Match Results (Sorted by Score) ---
-Rank 1: Resume: john_doe.pdf, Score: 0.8542, Method: direct_pdf
-Rank 2: Resume: jane_smith.docx, Score: 0.7891, Method: direct_docx
-Rank 3: Resume: alex_jones.png, Score: 0.6734, Method: ocr
+Rank 1: Resume: Sakib ML Resume.pdf, Score: 0.7812, Method: direct_pdf
+Rank 2: Resume: Sakib Alam Resume.docx, Score: 0.7341, Method: direct_docx
+Rank 3: Resume: Sakib Resume.png, Score: 0.6918, Method: ocr
 ```
 
-## ⚙️ Configuration
+---
 
-### Key Settings
-```python
-TEXT_LENGTH_THRESHOLD = 100        # Minimum text length for valid extraction
-RESUMES_DIRECTORY = "path/to/resumes"  # Resume folder path
-RESUME_EXTENSIONS = ['.pdf', '.docx', '.txt', '.png', '.jpg', '.jpeg']
-```
+## Score Interpretation
 
-### Model Selection
-Default: `all-MiniLM-L6-v2` (fast, accurate)
-- Change in `load_sentence_transformer_model()` function
+Scores range from 0.0 to 1.0. Higher means more semantically similar content between the resume and job description. These are not calibrated thresholds — treat scores as relative rankings within a batch, not absolute pass/fail values.
 
-## 🔧 How It Works
+| Range | Rough interpretation |
+|-------|----------------------|
+| > 0.75 | Strong topical overlap |
+| 0.55 – 0.75 | Moderate overlap |
+| < 0.55 | Low overlap |
 
-1. **📖 Text Extraction**: Direct parsing → OCR fallback if needed
-2. **🤖 Embedding Generation**: Converts text to numerical vectors
-3. **📐 Similarity Calculation**: Cosine similarity between job description and resumes
-4. **📊 Ranking**: Sort candidates by match score (0.0 - 1.0)
+---
 
-## 🎯 Scoring Guide
+## Limitations
 
-| Score Range | Match Quality | Action |
-|-------------|---------------|---------|
-| 0.8 - 1.0 | Excellent | 🟢 Strong candidate |
-| 0.6 - 0.8 | Good | 🟡 Consider for interview |
-| 0.4 - 0.6 | Fair | 🟠 Review manually |
-| 0.0 - 0.4 | Poor | 🔴 Likely not a match |
+- No UI — results are printed to console only
+- Paths must be configured manually in `.env`
+- OCR quality depends on Tesseract and document scan quality
+- Model runs entirely locally; first run downloads ~90MB model weights
+- No section-aware parsing — the entire resume text is treated as one document
+- No keyword extraction, skill matching, or experience weighting
 
-## 🚨 Troubleshooting
+---
 
-### Common Issues
+## Troubleshooting
 
-**❌ "Tesseract not found"**
-- Install Tesseract OCR and add to PATH
+**`TesseractNotFoundError`** — Tesseract is not installed or not on PATH. Install it and ensure it is accessible from the terminal.
 
-**❌ "No resume files found"** 
-- Check `RESUMES_DIRECTORY` path
-- Verify file extensions match `RESUME_EXTENSIONS`
+**`No resume files found`** — Check `RESUMES_DIRECTORY` in `.env` matches the actual folder name and location.
 
-**❌ "Model loading failure"**
-- Ensure internet connection for first run
-- Check Python environment has required packages
+**`Model loading failure`** — Requires internet access on first run to download model weights (~90MB). Subsequent runs use the cached model.
 
-**❌ "Insufficient text extracted"**
-- Check if documents are password protected
-- Try OCR for scanned documents
-- Verify file isn't corrupted
-
-## 📈 Performance Tips
-
-- **🔥 Fast Processing**: Use PDF/DOCX when possible (direct extraction)
-- **🎯 Better Accuracy**: Ensure job descriptions are detailed
-- **💾 Memory**: Large batches may require more RAM for embeddings
-- **⚡ Speed**: First run slower due to model download
-
-## 🤝 Contributing
-
-Found a bug or want to add features? Contributions welcome!
-
-## 📄 License
-
-Open source - feel free to modify and distribute.
+**Low text extraction** — If a PDF is a scanned image, direct extraction will return very little text and OCR will be used automatically.
